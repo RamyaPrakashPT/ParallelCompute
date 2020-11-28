@@ -109,6 +109,8 @@ public class AmazonTopReviewers extends Configured implements Tool {
 				// Now we parse the string into a JsonElement so we can dig into it
 				JsonElement jsonTree = parser.parse(jsonString);
 				
+				JsonObject jsonObject = jsonTree.getAsJsonObject();
+				
 				String reviewerID = jsonObject.get("reviewerID").getAsString();
                                 context.write(new Text(reviewerID),one);
 				
