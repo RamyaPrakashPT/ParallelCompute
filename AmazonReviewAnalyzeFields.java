@@ -33,13 +33,13 @@ import org.slf4j.LoggerFactory;
  * This Map-Reduce code will go through every Amazon review in rfox12:reviews
  * It will then output data on the top-level JSON keys
  */
-public class AmazonReviewAnalyzeFields extends Configured implements Tool {
+public class AmazonTopReviewers extends Configured implements Tool {
 	// Just used for logging
-	protected static final Logger LOG = LoggerFactory.getLogger(AmazonReviewAnalyzeFields.class);
+	protected static final Logger LOG = LoggerFactory.getLogger(AmazonTopReviewers.class);
 
 	// This is the execution entry point for Java programs
 	public static void main(String[] args) throws Exception {
-		int res = ToolRunner.run(HBaseConfiguration.create(), new AmazonReviewAnalyzeFields(), args);
+		int res = ToolRunner.run(HBaseConfiguration.create(), new AmazonTopReviewers(), args);
 		System.exit(res);
 	}
 
@@ -50,8 +50,8 @@ public class AmazonReviewAnalyzeFields extends Configured implements Tool {
 		}
 
 		// Now we create and configure a map-reduce "job"     
-		Job job = Job.getInstance(getConf(), "AmazonReviewAnalyzeFields");
-		job.setJarByClass(AmazonReviewAnalyzeFields.class);
+		Job job = Job.getInstance(getConf(), "AmazonTopReviewers");
+		job.setJarByClass(AmazonTopReviewers.class);
     
     		// By default we are going to can every row in the table
 		Scan scan = new Scan();
@@ -60,7 +60,7 @@ public class AmazonReviewAnalyzeFields extends Configured implements Tool {
 
     		// This helper will configure how table data feeds into the "map" method
 		TableMapReduceUtil.initTableMapperJob(
-			"rfox12:reviews_10000",        	// input HBase table name
+			"rprakas5:reviews_10000",        	// input HBase table name
 			scan,             		// Scan instance to control CF and attribute selection
 			MapReduceMapper.class,   	// Mapper class
 			Text.class,             	// Mapper output key
@@ -96,7 +96,7 @@ public class AmazonReviewAnalyzeFields extends Configured implements Tool {
 		@Override
 		protected void setup(Context context) {
 			parser = new JsonParser();
-			rowsProcessed = context.getCounter("AmazonReviewAnalyzeFields", "Rows Processed");
+			rowsProcessed = context.getCounter("AmazonTopReviewers", "Rows Processed");
     		}
   
   		// This "map" method is called with every row scanned.  
@@ -109,7 +109,10 @@ public class AmazonReviewAnalyzeFields extends Configured implements Tool {
 				// Now we parse the string into a JsonElement so we can dig into it
 				JsonElement jsonTree = parser.parse(jsonString);
 				
-				// Now we'll iterate through every top-level "key" in the JSON structure...
+				String reviewerID = jsonObject.get("reviewerID").getAsString();
+                                context.write(new Text(reviewerID),one);
+				
+				/*// Now we'll iterate through every top-level "key" in the JSON structure...
 				for (Map.Entry<String, JsonElement> entry : jsonTree.getAsJsonObject().entrySet()) {
 					// When we write to "context" we're passing data to the reducer
 					// In this case we're passing the JSON field name (e.g. "title") and the number 1 (for 1 instance)
@@ -159,7 +162,7 @@ public class AmazonReviewAnalyzeFields extends Configured implements Tool {
 						// This should never happen!
 						context.write(new Text(entry.getKey()+"-unknown"),one);
 					}
-				}
+				}*/
 			
 				// Here we increment a counter that we can read when the job is done
 				rowsProcessed.increment(1);
@@ -182,4 +185,3 @@ public class AmazonReviewAnalyzeFields extends Configured implements Tool {
 		}
 	}
 }
-
