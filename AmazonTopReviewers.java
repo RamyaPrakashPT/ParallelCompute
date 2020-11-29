@@ -155,7 +155,7 @@ public class AmazonTopReviewers extends Configured implements Tool {
 				
 				reviewerAverage.setAverage(overall);
 				reviewerAverage.setCount(1);
-				reviewerName.set(reviewerName)
+				reviewerName.set(reviewerName);
 				
                                // context.write(new Text(reviewerID),one);
 			       context.write(reviewerName, reviewerAverage);
