@@ -68,7 +68,7 @@ public class AmazonTopReviewers extends Configured implements Tool {
 			scan,             		// Scan instance to control CF and attribute selection
 			MapReduceMapper.class,   	// Mapper class
 			Text.class,             	// Mapper output key
-			ReviewerAverageTuple.class,	// Mapper output value
+			Writable.class,	// Mapper output value
 			job,				// This job
 			true				// Add dependency jars (keep this to true)
 		);
@@ -79,7 +79,7 @@ public class AmazonTopReviewers extends Configured implements Tool {
     		// For file output (text -> number)
     		FileOutputFormat.setOutputPath(job, new Path(args[0]));  // The first argument must be an output path
     		job.setOutputKeyClass(Text.class);
-    		job.setOutputValueClass(ReviewerAverageTuple.class);
+    		job.setOutputValueClass(Writable.class);
     
     		// What for the job to complete and exit with appropriate exit code
 		return job.waitForCompletion(true) ? 0 : 1;
