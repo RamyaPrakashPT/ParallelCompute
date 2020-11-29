@@ -41,41 +41,6 @@ public class AmazonTopReviewers extends Configured implements Tool {
 	// Just used for logging
 	protected static final Logger LOG = LoggerFactory.getLogger(AmazonTopReviewers.class);
 	
-	public static class ReviewerAverageTuple implements Writable {
-		private Double average = new Double(0);
-		private long count = 1;
-		
-		public Double getAverage() {
-			return average;
-		}
-		
-		public void setAverage(Double average) {
-			this.average = average;
-		}
-
-		public long getCount() {
-			return count;
-		}
-
-		public void setCount(long count) {
-			this.count = count;
-		}
-
-		public void readFields(DataInput in) throws IOException {
-			average = in.readDouble();
-			count = in.readLong();
-		}
-
-		public void write(DataOutput out) throws IOException {
-			out.writeDouble(average);
-			out.writeLong(count);
-		}
-
-		public String toString() {
-			return average + "\t" + count;
-		}
-	}
-
 	// This is the execution entry point for Java programs
 	public static void main(String[] args) throws Exception {
 		int res = ToolRunner.run(HBaseConfiguration.create(), new AmazonTopReviewers(), args);
@@ -120,6 +85,41 @@ public class AmazonTopReviewers extends Configured implements Tool {
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
+	public static class ReviewerAverageTuple implements Writable {
+		private Double average = new Double(0);
+		private long count = 1;
+		
+		public Double getAverage() {
+			return average;
+		}
+		
+		public void setAverage(Double average) {
+			this.average = average;
+		}
+
+		public long getCount() {
+			return count;
+		}
+
+		public void setCount(long count) {
+			this.count = count;
+		}
+
+		public void readFields(DataInput in) throws IOException {
+			average = in.readDouble();
+			count = in.readLong();
+		}
+
+		public void write(DataOutput out) throws IOException {
+			out.writeDouble(average);
+			out.writeLong(count);
+		}
+
+		public String toString() {
+			return average + "\t" + count;
+		}
+	}
+	
 	public static class MapReduceMapper extends TableMapper<Text, ReviewerAverageTuple> {
 		private static final Logger LOG = LoggerFactory.getLogger(MapReduceMapper.class);
     
