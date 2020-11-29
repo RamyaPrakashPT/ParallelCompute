@@ -233,11 +233,10 @@ public class AmazonTopReviewers extends Configured implements Tool {
 		private ReviewerAverageTuple result = new ReviewerAverageTuple();
 
 		@Override
-		public void reduce(Text key, Iterable<Writable> values, Context context) throws IOException, InterruptedException {
+		public void reduce(Text key, Iterable<ReviewerAverageTuple> values, Context context) throws IOException, InterruptedException {
 			double sum = 0;
 			long count = 0;
-			//ReviewerAverageTuple[] reviews=(ReviewerAverageTuple[]) values;
-			Iterable<ReviewerAverageTuple> reviews = values;
+
 			for (ReviewerAverageTuple reviewerAverage : reviews) {
 				//sum += count.get();
 				sum = sum + reviewerAverage.getAverage() * reviewerAverage.getCount();
