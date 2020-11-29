@@ -236,7 +236,8 @@ public class AmazonTopReviewers extends Configured implements Tool {
 		public void reduce(Text key, Iterable<Writable> values, Context context) throws IOException, InterruptedException {
 			double sum = 0;
 			long count = 0;
-			ReviewerAverageTuple[] reviews=(ReviewerAverageTuple[]) values;
+			//ReviewerAverageTuple[] reviews=(ReviewerAverageTuple[]) values;
+			Iterable<ReviewerAverageTuple> reviews = values;
 			for (ReviewerAverageTuple reviewerAverage : reviews) {
 				//sum += count.get();
 				sum = sum + reviewerAverage.getAverage() * reviewerAverage.getCount();
