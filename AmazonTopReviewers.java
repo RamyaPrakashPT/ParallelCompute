@@ -23,6 +23,10 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.*;
+import org.apache.hadoop.io.Writable;
+import java.io.DataInput;
+import java.io.DataOutput;
+
 
 import com.google.gson.*;
 
@@ -150,12 +154,12 @@ public class AmazonTopReviewers extends Configured implements Tool {
 				JsonObject jsonObject = jsonTree.getAsJsonObject();
 				
 				String reviewerID = jsonObject.get("reviewerID").getAsString();
-				String reviewerName = jsonObject.get("reviewerName").getAsString();
+				String reviewer = jsonObject.get("reviewerName").getAsString();
 				String overall = jsonObject.get("overall").getAsString();
 				
 				reviewerAverage.setAverage(overall);
 				reviewerAverage.setCount(1);
-				reviewerName.set(reviewerName);
+				reviewerName.set(reviewer);
 				
                                // context.write(new Text(reviewerID),one);
 			       context.write(reviewerName, reviewerAverage);
