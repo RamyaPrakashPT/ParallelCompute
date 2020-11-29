@@ -120,7 +120,7 @@ public class AmazonTopReviewers extends Configured implements Tool {
 		}
 	}
 	
-	public static class MapReduceMapper extends TableMapper<Text, Writable> {
+	public static class MapReduceMapper extends TableMapper<Text, ReviewerAverageTuple> {
 		private static final Logger LOG = LoggerFactory.getLogger(MapReduceMapper.class);
     
     		// Here are some static (hard coded) variables
@@ -228,7 +228,7 @@ public class AmazonTopReviewers extends Configured implements Tool {
 	// Reducer to simply sum up the values with the same key (text)
 	// The reducer will run until all values that have the same key are combined
 	//public static class MapReduceReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
-	public static class MapReduceReducer extends Reducer<Text, Writable, Text, Writable> {
+	public static class MapReduceReducer extends Reducer<Text, ReviewerAverageTuple, Text, ReviewerAverageTuple> {
 		
 		private ReviewerAverageTuple result = new ReviewerAverageTuple();
 
@@ -236,7 +236,6 @@ public class AmazonTopReviewers extends Configured implements Tool {
 		public void reduce(Text key, Iterable<ReviewerAverageTuple> values, Context context) throws IOException, InterruptedException {
 			double sum = 0;
 			long count = 0;
-
 			for (ReviewerAverageTuple reviewerAverage : values) {
 				//sum += count.get();
 				sum = sum + reviewerAverage.getAverage() * reviewerAverage.getCount();
