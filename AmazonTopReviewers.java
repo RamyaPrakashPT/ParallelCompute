@@ -155,7 +155,7 @@ public class AmazonTopReviewers extends Configured implements Tool {
 				
 				String reviewerID = jsonObject.get("reviewerID").getAsString();
 				String reviewer = jsonObject.get("reviewerName").getAsString();
-				String overall = jsonObject.get("overall").getAsString();
+				double overall = Double.parseDouble(jsonObject.get("overall").getAsString());
 				
 				reviewerAverage.setAverage(overall);
 				reviewerAverage.setCount(1);
