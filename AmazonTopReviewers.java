@@ -36,6 +36,41 @@ import org.slf4j.LoggerFactory;
 public class AmazonTopReviewers extends Configured implements Tool {
 	// Just used for logging
 	protected static final Logger LOG = LoggerFactory.getLogger(AmazonTopReviewers.class);
+	
+	public static class ReviewerAverageTuple implements Writable {
+		private Double average = new Double(0);
+		private long count = 1;
+		
+		public Double getAverage() {
+			return average;
+		}
+		
+		public void setAverage(Double average) {
+			this.average = average;
+		}
+
+		public long getCount() {
+			return count;
+		}
+
+		public void setCount(long count) {
+			this.count = count;
+		}
+
+		public void readFields(DataInput in) throws IOException {
+			average = in.readDouble();
+			count = in.readLong();
+		}
+
+		public void write(DataOutput out) throws IOException {
+			out.writeDouble(average);
+			out.writeLong(count);
+		}
+
+		public String toString() {
+			return average + "\t" + count;
+		}
+	}
 
 	// This is the execution entry point for Java programs
 	public static void main(String[] args) throws Exception {
@@ -64,7 +99,7 @@ public class AmazonTopReviewers extends Configured implements Tool {
 			scan,             		// Scan instance to control CF and attribute selection
 			MapReduceMapper.class,   	// Mapper class
 			Text.class,             	// Mapper output key
-			IntWritable.class,		// Mapper output value
+			ReviewerAverageTuple.class,	// Mapper output value
 			job,				// This job
 			true				// Add dependency jars (keep this to true)
 		);
@@ -75,13 +110,13 @@ public class AmazonTopReviewers extends Configured implements Tool {
     		// For file output (text -> number)
     		FileOutputFormat.setOutputPath(job, new Path(args[0]));  // The first argument must be an output path
     		job.setOutputKeyClass(Text.class);
-    		job.setOutputValueClass(IntWritable.class);
+    		job.setOutputValueClass(ReviewerAverageTuple.class);
     
     		// What for the job to complete and exit with appropriate exit code
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
-	public static class MapReduceMapper extends TableMapper<Text, IntWritable> {
+	public static class MapReduceMapper extends TableMapper<Text, ReviewerAverageTuple> {
 		private static final Logger LOG = LoggerFactory.getLogger(MapReduceMapper.class);
     
     		// Here are some static (hard coded) variables
@@ -91,6 +126,9 @@ public class AmazonTopReviewers extends Configured implements Tool {
     
 		private Counter rowsProcessed;  	// This will count number of rows processed
 		private JsonParser parser;		// This gson parser will help us parse JSON
+		
+		private ReviewerAverageTuple reviewerAverage = new ReviewerAverageTuple();
+		private Text reviewerName = new Text();
 
 		// This setup method is called once before the task is started
 		@Override
@@ -112,7 +150,16 @@ public class AmazonTopReviewers extends Configured implements Tool {
 				JsonObject jsonObject = jsonTree.getAsJsonObject();
 				
 				String reviewerID = jsonObject.get("reviewerID").getAsString();
-                                context.write(new Text(reviewerID),one);
+				String reviewerName = jsonObject.get("reviewerName").getAsString();
+				String overall = jsonObject.get("overall").getAsString();
+				
+				reviewerAverage.setAverage(overall);
+				reviewerAverage.setCount(1);
+				reviewerName.set(reviewerName)
+				
+                               // context.write(new Text(reviewerID),one);
+			       context.write(reviewerName, reviewerAverage);
+	
 				
 				/*// Now we'll iterate through every top-level "key" in the JSON structure...
 				for (Map.Entry<String, JsonElement> entry : jsonTree.getAsJsonObject().entrySet()) {
@@ -176,14 +223,27 @@ public class AmazonTopReviewers extends Configured implements Tool {
   
 	// Reducer to simply sum up the values with the same key (text)
 	// The reducer will run until all values that have the same key are combined
-	public static class MapReduceReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+	//public static class MapReduceReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+	public static class MapReduceReducer extends Reducer<Text, ReviewerAverageTuple, Text, ReviewerAverageTuple> {
+		
+		private ReviewerAverageTuple result = new ReviewerAverageTuple();
+
 		@Override
-		public void reduce(Text key, Iterable<IntWritable> counts, Context context) throws IOException, InterruptedException {
-			int sum = 0;
-			for (IntWritable count : counts) {
-				sum += count.get();
+		public void reduce(Text key, Iterable<ReviewerAverageTuple> values, Context context) throws IOException, InterruptedException {
+			double sum = 0;
+			long count = 0;
+			for (ReviewerAverageTuple reviewerAverage : values) {
+				//sum += count.get();
+				sum = sum + reviewerAverage.getAverage() * reviewerAverage.getCount();
+				count = count + reviewerAverage.getCount();
+
 			}
-			context.write(key, new IntWritable(sum));
+			result.setCount(count);
+			result.setAverage(sum / count);
+			context.write(new Text(key.toString()), result);
+
+			//context.write(key, new IntWritable(sum));
 		}
-	}
+	}	
+
 }
